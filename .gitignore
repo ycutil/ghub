@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+config.json
+templates/skill_icon.png
+dist/
+build/
+*.spec
+*.egg-info/
