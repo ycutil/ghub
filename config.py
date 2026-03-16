@@ -16,6 +16,7 @@ BASE_DIR = _base_dir()
 CONFIG_PATH = BASE_DIR / "config.json"
 
 DEFAULTS = {
+    "window_name": "AION2",
     "template_path": "templates/skill_icon.png",
     "roi": [1261, 470, 1292, 501],       # [x1, y1, x2, y2] 스킬 아이콘 영역
     "match_threshold": 0.5,    # 다중 템플릿 매칭 임계값
