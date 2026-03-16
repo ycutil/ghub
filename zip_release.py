@@ -2,7 +2,7 @@ import zipfile
 import os
 
 src = r"C:\Users\Administrator\Documents\aion\ghub\dist\release_pkg"
-out = r"C:\Users\Administrator\Documents\aion\ghub\dist\aion_ghub_v1.7.0.zip"
+out = r"C:\Users\Administrator\Documents\aion\ghub\dist\aion_ghub_v1.8.0.zip"
 
 with zipfile.ZipFile(out, "w", zipfile.ZIP_DEFLATED) as z:
     for root, dirs, files in os.walk(src):
