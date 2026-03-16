@@ -1,7 +1,7 @@
 SKILL_KEY = "f1"
-POLL_INTERVAL = 5        -- 5ms 폴링
+POLL_INTERVAL = 2        -- 2ms 폴링
 LUA_COOLDOWN = 300
-PRESS_COUNT = 10         -- 키 반복 횟수
+PRESS_COUNT = 20         -- 키 반복 횟수
 PRESS_INTERVAL = 1       -- 반복 간격 (ms)
 
 function OnEvent(event, arg)
@@ -20,7 +20,6 @@ function OnEvent(event, arg)
                     end
                     last_trigger = GetRunningTime()
                 end
-                -- Lua가 직접 ScrollLock OFF
                 PressAndReleaseKey("scrolllock")
             end
             Sleep(POLL_INTERVAL)

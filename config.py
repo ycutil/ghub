@@ -21,7 +21,7 @@ DEFAULTS = {
     "match_threshold": 0.5,    # 다중 템플릿 매칭 임계값
     "skill_key": "f1",
     "cooldown_ms": 2000,
-    "capture_interval_ms": 30,
+    "capture_interval_ms": 10,
     "scrolllock_hold_ms": 50,     # ScrollLock 유지 시간 (50ms = Lua 10ms 폴링 x 5)
 }
 
