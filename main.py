@@ -27,14 +27,15 @@ def main() -> None:
     tpl_path = config.BASE_DIR / cfg["template_path"]
     if not tpl_path.exists():
         print(f"[오류] 템플릿 이미지가 없습니다: {tpl_path}")
-        print("roi_selector.py를 먼저 실행하여 ROI와 템플릿을 설정하세요.")
+        print("templates/ 폴더에 skill_icon.png를 넣어주세요.")
+        input("아무 키나 누르면 종료...")
         sys.exit(1)
 
     # 초기화
     _set_timer_resolution()
     ensure_off()
 
-    cap = ScreenCapture(cfg["roi"])
+    cap = ScreenCapture()
     det = IconDetector(str(tpl_path), cfg["match_threshold"])
 
     cooldown_sec = cfg["cooldown_ms"] / 1000.0
@@ -42,7 +43,7 @@ def main() -> None:
     hold_ms = cfg["scrolllock_hold_ms"]
     last_trigger = 0.0
 
-    print(f"[시작] ROI={cfg['roi']}, 스킬키={cfg['skill_key']}, 쿨다운={cfg['cooldown_ms']}ms")
+    print(f"[시작] 스킬키={cfg['skill_key']}, 쿨다운={cfg['cooldown_ms']}ms, 임계값={cfg['match_threshold']}")
     print("종료하려면 Ctrl+C를 누르세요.")
 
     try:

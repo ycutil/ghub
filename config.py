@@ -16,7 +16,6 @@ BASE_DIR = _base_dir()
 CONFIG_PATH = BASE_DIR / "config.json"
 
 DEFAULTS = {
-    "roi": {"left": 0, "top": 0, "width": 200, "height": 200},
     "template_path": "templates/skill_icon.png",
     "match_threshold": 0.8,
     "skill_key": "f1",

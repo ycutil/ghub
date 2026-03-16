@@ -24,13 +24,9 @@ jobs:
       - name: Build aion2_skill.exe
         run: pyinstaller --onefile --name aion2_skill main.py
 
-      - name: Build roi_selector.exe
-        run: pyinstaller --onefile --name roi_selector roi_selector.py
-
       - name: Upload Release Assets
         uses: softprops/action-gh-release@v2
         with:
           files: |
             dist/aion2_skill.exe
-            dist/roi_selector.exe
             ghub_script.lua
