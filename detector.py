@@ -1,12 +1,13 @@
-"""ROI 영역 색상 기반 아이콘 감지 모듈.
+"""ROI 영역 다중 템플릿 매칭 기반 아이콘 감지 모듈.
 
-애니메이션이 있는 스킬 아이콘은 템플릿 매칭 대신
-특정 색상(초록색)의 비율로 감지한다.
+애니메이션 스킬 아이콘을 여러 프레임 템플릿과 비교하여
+가장 높은 유사도로 판정한다.
 """
 
 import time
 import cv2
 import numpy as np
+from pathlib import Path
 
 
 def _ts() -> str:
@@ -14,35 +15,65 @@ def _ts() -> str:
 
 
 class IconDetector:
-    """ROI 영역에서 초록색 비율로 스킬 아이콘 활성화를 감지."""
+    """다중 템플릿 매칭으로 스킬 아이콘 감지.
 
-    # HSV 초록색 범위 (조정 가능)
-    GREEN_LOW = np.array([35, 50, 50])
-    GREEN_HIGH = np.array([90, 255, 255])
+    ROI(31x31)와 템플릿(32x32)을 직접 비교.
+    3개 템플릿 중 최대 유사도가 임계값 이상이면 감지.
+    """
 
-    def __init__(self, threshold: float = 0.3):
+    def __init__(self, template_dir: str, threshold: float = 0.7):
         """
         Args:
-            threshold: 초록색 픽셀 비율 임계값 (0.0~1.0).
-                       ROI 중 이 비율 이상이 초록색이면 감지됨.
+            template_dir: 템플릿 이미지들이 있는 폴더 경로
+            threshold: 매칭 임계값 (0.0~1.0)
         """
         self._threshold = threshold
-        print(f"[{_ts()}][DET] 색상 감지 모드: 초록색 비율 >= {threshold:.0%} 이면 감지")
-        print(f"[{_ts()}][DET] HSV 범위: H={self.GREEN_LOW[0]}-{self.GREEN_HIGH[0]}, "
-              f"S={self.GREEN_LOW[1]}-{self.GREEN_HIGH[1]}, "
-              f"V={self.GREEN_LOW[2]}-{self.GREEN_HIGH[2]}")
+        self._templates = []
+
+        tpl_dir = Path(template_dir)
+        # skill_1.png, skill_2.png, skill_3.png 로드
+        for f in sorted(tpl_dir.glob("skill_*.png")):
+            img = cv2.imread(str(f), cv2.IMREAD_COLOR)
+            if img is not None:
+                self._templates.append((f.name, img))
+                print(f"[{_ts()}][DET] 템플릿 로드: {f.name} ({img.shape[1]}x{img.shape[0]})")
+
+        if not self._templates:
+            # 폴백: skill_icon.png
+            fallback = tpl_dir / "skill_icon.png"
+            if fallback.exists():
+                img = cv2.imread(str(fallback), cv2.IMREAD_COLOR)
+                if img is not None:
+                    self._templates.append((fallback.name, img))
+                    print(f"[{_ts()}][DET] 폴백 템플릿 로드: {fallback.name}")
+
+        if not self._templates:
+            raise FileNotFoundError(f"템플릿 이미지가 없습니다: {tpl_dir}")
+
+        print(f"[{_ts()}][DET] 총 {len(self._templates)}개 템플릿, 임계값={threshold}")
 
     def detect(self, bgr_frame: np.ndarray) -> tuple[bool, float]:
-        """ROI 프레임(BGR)에서 초록색 비율로 감지.
+        """ROI 프레임(BGR)과 모든 템플릿을 비교.
 
         Returns:
-            (detected, green_ratio): 초록색 비율이 임계값 이상이면 detected=True
+            (detected, best_score): 최대 유사도가 임계값 이상이면 detected=True
         """
-        hsv = cv2.cvtColor(bgr_frame, cv2.COLOR_BGR2HSV)
-        mask = cv2.inRange(hsv, self.GREEN_LOW, self.GREEN_HIGH)
-        total_pixels = mask.shape[0] * mask.shape[1]
-        green_pixels = np.count_nonzero(mask)
-        ratio = green_pixels / total_pixels if total_pixels > 0 else 0.0
+        rh, rw = bgr_frame.shape[:2]
+        best_score = -1.0
 
-        detected = ratio >= self._threshold
-        return (detected, ratio)
+        for name, tpl in self._templates:
+            th, tw = tpl.shape[:2]
+            # ROI 크기에 맞춰 리사이즈
+            if (th, tw) != (rh, rw):
+                resized = cv2.resize(tpl, (rw, rh), interpolation=cv2.INTER_AREA)
+            else:
+                resized = tpl
+
+            # 정규화 상관계수
+            result = cv2.matchTemplate(bgr_frame, resized, cv2.TM_CCOEFF_NORMED)
+            score = float(result[0][0])
+            if score > best_score:
+                best_score = score
+
+        detected = best_score >= self._threshold
+        return (detected, best_score)

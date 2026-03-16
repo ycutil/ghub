@@ -18,7 +18,7 @@ CONFIG_PATH = BASE_DIR / "config.json"
 DEFAULTS = {
     "template_path": "templates/skill_icon.png",
     "roi": [1261, 470, 1292, 501],       # [x1, y1, x2, y2] 스킬 아이콘 영역
-    "match_threshold": 0.3,    # ROI 중 초록색 비율 (30% 이상이면 감지)
+    "match_threshold": 0.7,    # 다중 템플릿 매칭 임계값 (0.7 이상이면 감지)
     "skill_key": "f1",
     "cooldown_ms": 2000,
     "capture_interval_ms": 30,
