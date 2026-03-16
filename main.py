@@ -56,20 +56,17 @@ def detect_enemy_red(bgr_frame: np.ndarray, threshold: int = 3) -> tuple[bool, i
     h, w = bgr_frame.shape[:2]
     cx, cy = w / 2, h / 2  # 미니맵 중심 = 플레이어 위치
 
-    # 서브샘플링 (2픽셀 건너뛰기)
-    sub = bgr_frame[::2, ::2]
-    b = sub[:, :, 0].astype(np.int16)
-    g = sub[:, :, 1].astype(np.int16)
-    r = sub[:, :, 2].astype(np.int16)
+    b = bgr_frame[:, :, 0].astype(np.int16)
+    g = bgr_frame[:, :, 1].astype(np.int16)
+    r = bgr_frame[:, :, 2].astype(np.int16)
     mask = (r > 210) & (g < 80) & (b < 80)
     count = int(np.count_nonzero(mask))
 
     angles = []
     if count >= threshold:
-        # 빨간 픽셀 좌표 (서브샘플링 보정: *2)
         ys, xs = np.where(mask)
-        xs = xs.astype(np.float64) * 2
-        ys = ys.astype(np.float64) * 2
+        xs = xs.astype(np.float64)
+        ys = ys.astype(np.float64)
 
         # 간단한 클러스터링: 전체 중심 1개 또는 거리 기반 분리
         # 빨간 픽셀이 적으면 하나의 클러스터로
@@ -448,15 +445,17 @@ class OverlayApp:
     # ── 적 탐지 루프 (미니맵) ──
     def _enemy_loop(self):
         cfg = config.load()
-        minimap_roi = cfg.get("minimap_roi", [1600, 80, 1880, 270])
+        minimap_roi = cfg.get("minimap_roi", [1650, 100, 1897, 263])
         red_threshold = cfg.get("enemy_red_threshold", 3)
         cooldown_sec = cfg.get("enemy_cooldown_ms", 3000) / 1000.0
+        scan_interval = cfg.get("enemy_scan_interval_ms", 50) / 1000.0
         last_alert = 0.0
 
         while not self._stop_event.is_set():
+            loop_start = time.perf_counter()
             frame = self._cap.grab_roi(minimap_roi)
             if frame is None:
-                time.sleep(0.1)
+                time.sleep(0.05)
                 continue
 
             detected, red_count, angles = detect_enemy_red(frame, red_threshold)
@@ -478,7 +477,9 @@ class OverlayApp:
             else:
                 self.root.after(0, self._clear_compass)
 
-            time.sleep(0.2)  # 200ms 간격
+            sleep_time = scan_interval - (time.perf_counter() - loop_start)
+            if sleep_time > 0:
+                time.sleep(sleep_time)
 
     # ── 투기장 매칭 감시 루프 ──
     def _arena_loop(self):

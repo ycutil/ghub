@@ -27,8 +27,9 @@ DEFAULTS = {
     # 적 탐지 (미니맵)
     "enemy_detect": True,
     "minimap_roi": [1650, 100, 1897, 263],   # 미니맵 영역 [x1, y1, x2, y2]
-    "enemy_red_threshold": 3,               # 빨간 픽셀 최소 개수 (서브샘플링 후)
+    "enemy_red_threshold": 2,               # 빨간 픽셀 최소 개수
     "enemy_cooldown_ms": 3000,              # 알림 쿨다운
+    "enemy_scan_interval_ms": 50,           # 적 탐지 스캔 간격 (ms)
 }
 
 
