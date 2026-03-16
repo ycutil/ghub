@@ -95,7 +95,7 @@ class GameCapture:
         x1, y1, x2, y2 = roi
         h, w = frame.shape[:2]
         # 범위 체크
-        if x2 > w or y2 > h:
+        if x1 < 0 or y1 < 0 or x2 > w or y2 > h or x1 >= x2 or y1 >= y2:
             return None
 
         return frame[y1:y2, x1:x2].copy()

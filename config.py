@@ -34,10 +34,22 @@ DEFAULTS = {
 
 
 def load() -> dict:
-    """설정 파일을 로드한다. 없으면 기본값으로 생성."""
+    """설정 파일을 로드한다. 없으면 기본값으로 생성. 손상 시 백업 후 기본값 복구."""
     if CONFIG_PATH.exists():
-        with open(CONFIG_PATH, "r", encoding="utf-8") as f:
-            cfg = json.load(f)
+        try:
+            with open(CONFIG_PATH, "r", encoding="utf-8") as f:
+                cfg = json.load(f)
+        except (json.JSONDecodeError, ValueError) as e:
+            # 손상된 파일 백업 후 기본값 복구
+            backup = CONFIG_PATH.with_suffix(".json.backup")
+            try:
+                CONFIG_PATH.rename(backup)
+                print(f"[config] 손상된 설정 백업: {backup}")
+            except OSError:
+                pass
+            print(f"[config][경고] config.json 파싱 실패({e}), 기본값으로 복구")
+            save(DEFAULTS)
+            return dict(DEFAULTS)
         # 누락된 키에 기본값 채우기
         for key, val in DEFAULTS.items():
             cfg.setdefault(key, val)

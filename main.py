@@ -311,9 +311,6 @@ class OverlayApp:
         self.active = False
         self._stop_event.set()
         ensure_off()
-        if self._cap:
-            self._cap.stop()
-            self._cap = None
         self._flashing = False
         self.btn.config(text="▶ OFF", fg="#ff4444")
         self.root.configure(bg=self.BG_COLOR)
@@ -321,6 +318,23 @@ class OverlayApp:
         self._clear_compass()
         self._status("대기 중")
         self._update_tray_icon()
+        # 스레드 종료 후 캡처 정리 (non-blocking)
+        self.root.after(500, self._cleanup_capture)
+
+    def _cleanup_capture(self):
+        """스레드 종료 대기 후 캡처 해제."""
+        threads = [self._thread, self._enemy_thread, self._arena_thread]
+        alive = [t for t in threads if t is not None and t.is_alive()]
+        if alive:
+            # 아직 살아있으면 다시 대기
+            self.root.after(200, self._cleanup_capture)
+            return
+        if self._cap:
+            self._cap.stop()
+            self._cap = None
+        self._thread = None
+        self._enemy_thread = None
+        self._arena_thread = None
 
     def _status(self, text: str):
         try:
@@ -415,6 +429,8 @@ class OverlayApp:
         interval_sec = cfg["capture_interval_ms"] / 1000.0
         hold_ms = cfg["scrolllock_hold_ms"]
         last_trigger = 0.0
+        last_status_score = -1.0
+        last_status_time = 0.0
 
         while not self._stop_event.is_set():
             loop_start = time.perf_counter()
@@ -433,10 +449,17 @@ class OverlayApp:
                 self.trigger_count += 1
                 self.root.after(0, self._status,
                     f"발동 #{self.trigger_count}  score={score:.3f}")
+                last_status_score = score
+                last_status_time = now
             elif not detected and not self._flashing:
-                if int(now * 2) % 2 == 0:
+                # score 변화 < 0.01이면 업데이트 스킵 (2초마다 강제)
+                score_changed = abs(score - last_status_score) >= 0.01
+                time_elapsed = (now - last_status_time) >= 2.0
+                if score_changed or time_elapsed:
                     self.root.after(0, self._status,
                         f"감시 중  score={score:.3f}  #{self.trigger_count}")
+                    last_status_score = score
+                    last_status_time = now
 
             sleep_time = interval_sec - (time.perf_counter() - loop_start)
             if sleep_time > 0:
