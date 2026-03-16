@@ -30,3 +30,4 @@ jobs:
           files: |
             dist/aion2_skill.exe
             ghub_script.lua
+            templates/skill_icon.png
