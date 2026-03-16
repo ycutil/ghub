@@ -1,24 +1,27 @@
--- Aion 2 Auto-Skill Activation (G-Hub Lua Script)
---
--- 설정 순서:
--- 1. G-Hub에서 아이온2 프로필 생성 (실행 파일 지정)
--- 2. 마우스 → Assignments → Scripting에 이 내용 붙여넣기
--- 3. SKILL_KEY를 게임 내 스킬 단축키와 일치시키기
-
-SKILL_KEY = "f1"         -- 게임 내 상태이상 해제 스킬 키
-POLL_INTERVAL = 30       -- ScrollLock 폴링 간격 (ms)
-LUA_COOLDOWN = 300       -- 이중 발동 방지 쿨다운 (ms)
+SKILL_KEY = "f1"
+POLL_INTERVAL = 5        -- 5ms 폴링
+LUA_COOLDOWN = 300
+PRESS_COUNT = 10         -- 키 반복 횟수
+PRESS_INTERVAL = 1       -- 반복 간격 (ms)
 
 function OnEvent(event, arg)
     if event == "PROFILE_ACTIVATED" then
         local last_trigger = 0
+
         while true do
             if IsKeyLockOn("scrolllock") then
                 local now = GetRunningTime()
                 if (now - last_trigger) >= LUA_COOLDOWN then
-                    PressAndReleaseKey(SKILL_KEY)
-                    last_trigger = now
+                    for i = 1, PRESS_COUNT do
+                        PressAndReleaseKey(SKILL_KEY)
+                        if i < PRESS_COUNT then
+                            Sleep(PRESS_INTERVAL)
+                        end
+                    end
+                    last_trigger = GetRunningTime()
                 end
+                -- Lua가 직접 ScrollLock OFF
+                PressAndReleaseKey("scrolllock")
             end
             Sleep(POLL_INTERVAL)
         end

@@ -17,11 +17,12 @@ CONFIG_PATH = BASE_DIR / "config.json"
 
 DEFAULTS = {
     "template_path": "templates/skill_icon.png",
-    "match_threshold": 0.8,
+    "roi": [1261, 470, 1292, 501],       # [x1, y1, x2, y2] 스킬 아이콘 영역
+    "match_threshold": 0.3,    # ROI 중 초록색 비율 (30% 이상이면 감지)
     "skill_key": "f1",
     "cooldown_ms": 2000,
     "capture_interval_ms": 30,
-    "scrolllock_hold_ms": 120,
+    "scrolllock_hold_ms": 50,     # ScrollLock 유지 시간 (50ms = Lua 10ms 폴링 x 5)
 }
 
 
