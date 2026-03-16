@@ -24,6 +24,11 @@ DEFAULTS = {
     "cooldown_ms": 2000,
     "capture_interval_ms": 10,
     "scrolllock_hold_ms": 50,     # ScrollLock 유지 시간 (50ms = Lua 10ms 폴링 x 5)
+    # 적 탐지 (미니맵)
+    "enemy_detect": True,
+    "minimap_roi": [1600, 80, 1880, 270],   # 미니맵 영역 [x1, y1, x2, y2]
+    "enemy_red_threshold": 3,               # 빨간 픽셀 최소 개수 (서브샘플링 후)
+    "enemy_cooldown_ms": 3000,              # 알림 쿨다운
 }
 
 
