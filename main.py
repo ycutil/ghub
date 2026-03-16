@@ -337,6 +337,13 @@ class OverlayApp:
         flash_color = color or self.FLASH_COLOR
         self.root.after(0, self._status, msg)
         self._do_flash(0, flash_color)
+        # 비프음 2번
+        import winsound
+        threading.Thread(target=lambda: (
+            winsound.Beep(1000, 200),
+            time.sleep(0.1),
+            winsound.Beep(1000, 200),
+        ), daemon=True).start()
 
     def _do_flash(self, count: int, flash_color: str = None):
         if flash_color is None:
